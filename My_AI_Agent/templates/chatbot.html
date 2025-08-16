@@ -1,118 +1,134 @@
+<!-- chatbot.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Ask the AI</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-            background: linear-gradient(to bottom, #ffe6f0, #ffcce0, #ffb3d9);
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ask</title>
+<style>
+  :root{
+    --bg1:#0e1320; --bg2:#0b1630;
+    --glass:#0f172a; --stroke:#1f2937;
+    --text:#e5e7eb; --muted:#9ca3af; --accent:#4f46e5;
+    --chip:#111827; --chip-border:#374151;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+    color:var(--text);
+    background: radial-gradient(1200px 600px at 50% -10%, #1b2b5a 0%, transparent 60%),
+                linear-gradient(180deg, var(--bg1), var(--bg2));
+    min-height:100dvh; display:flex; align-items:center; justify-content:center;
+  }
+  .hero{
+    width:min(1100px, 92vw); text-align:center; padding:32px 0 10vh;
+  }
+  h1{
+    font-size: clamp(28px, 6vw, 56px); margin:0 0 6px; font-weight:700; letter-spacing:0.2px;
+  }
+  h2{
+    font-size: clamp(18px, 4.2vw, 40px); margin:0 0 28px; font-weight:600; color:var(--muted);
+  }
 
-        /* Bubble container */
-        .bubbles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
+  /* Search/ask bar */
+  .bar{
+    background: rgba(17,24,39,.75);
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    padding: 12px;
+    backdrop-filter: blur(6px);
+    display:flex; align-items:center; gap:10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .bar input[type="text"]{
+    flex:1; background:transparent; border:none; color:var(--text);
+    font-size:16px; outline:none; padding:12px 6px;
+  }
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    background: var(--accent); color:white;
+    padding:10px 16px; border-radius:12px; font-weight:600;
+    transition:.2s transform ease, .2s opacity ease;
+  }
+  .btn:hover{ transform: translateY(-1px); opacity:.95; }
 
-        .bubble {
-            position: absolute;
-            bottom: -150px;
-            background: rgba(0, 0, 139, 0.4); /* Dark blue bubbles */
-            border-radius: 50%;
-            animation: rise 15s infinite ease-in;
-        }
+  
+  .chips{
+    display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+    margin:14px 0 0;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:8px 14px; border-radius:999px; font-weight:600; font-size:14px;
+    background:var(--chip); border:1px solid var(--chip-border); color:var(--text);
+    cursor:pointer; transition:.2s transform ease, .2s opacity ease;
+  }
+  .chip:hover{ transform: translateY(-1px); opacity:.95; }
 
-        @keyframes rise {
-            0% {
-                transform: translateY(0) scale(1);
-                opacity: 0.6;
-            }
-            100% {
-                transform: translateY(-110vh) scale(1.2);
-                opacity: 0;
-            }
-        }
+  
+  input[type="file"]{ display:none; }
 
-        /* Form container */
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-            margin-top: 60px;
-            color: #800040;
-        }
 
-        input[type=text] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: none;
-            border-radius: 5px;
-            outline: none;
-        }
-
-        button {
-            padding: 8px 16px;
-            border: none;
-            background: #ff80ab;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-
-        button:hover {
-            background: #ff4081;
-        }
-
-        .answer {
-            
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-    </style>
+  .card{
+    margin:18px auto 0; width:min(900px, 92vw);
+    background: rgba(17,24,39,.75);
+    border:1px solid var(--stroke); border-radius:14px; padding:16px; text-align:left;
+  }
+  .card strong{ color:#c7d2fe; }
+  ul{ margin:8px 0 0 18px; }
+</style>
 </head>
 <body>
+  <div class="hero">
+    <h1>Hello!</h1>
+    <h2>How can I help you today?</h2>
 
-<!-- Bubble Background -->
-<div class="bubbles">
-    <div class="bubble" style="left: 10%; width: 40px; height: 40px; animation-duration: 10s;"></div>
-    <div class="bubble" style="left: 30%; width: 25px; height: 25px; animation-duration: 12s;"></div>
-    <div class="bubble" style="left: 50%; width: 50px; height: 50px; animation-duration: 8s;"></div>
-    <div class="bubble" style="left: 70%; width: 20px; height: 20px; animation-duration: 15s;"></div>
-    <div class="bubble" style="left: 90%; width: 35px; height: 35px; animation-duration: 11s;"></div>
-    <div class="bubble" style="left: 15%; width: 30px; height: 30px; animation-duration: 14s;"></div>
-</div>
-
-<!-- Main Container -->
-<div class="container">
-    <h1 style="display: flex; align-items: center; gap: 10px;">
-        AskAI
-        <img src="https://mir-s3-cdn-cf.behance.net/project_modules/max_1200/3cc1e1183385705.653f498a49b92.jpg" 
-             alt="AI Logo" 
-             style="width:50px; height:50px; object-fit:cover; border-radius:5px;">
-    </h1>    
-    <form method="post">
-        {% csrf_token %}
-        <input type="text" name="question" placeholder="Enter your question..." required>
-        <button type="submit">Ask</button>
+  
+    <form class="bar" method="post">
+      {% csrf_token %}
+      <input type="text" name="question" placeholder="Ask anything…" required />
+      <button class="btn" type="submit" name="action" value="ask">Ask</button>
     </form>
-    {% if answer %}
-        <div class="answer"><strong>Answer:</strong> {{ answer }}</div>
-    {% endif %}
-</div>
 
+   
+    <div class="chips">
+      
+      <form id="upload-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label class="chip" for="file-input">⬆️ Upload</label>
+        <input id="file-input" type="file" name="doc"
+               accept=".csv,.txt,.md,.markdown,.pdf,.docx,.png,.jpg,.jpeg,.bmp,.tiff,.webp"
+               required />
+        <input type="hidden" name="action" value="upload" />
+      </form>
+
+     
+      <button class="chip" type="button" onclick="document.querySelector('.bar .btn').click()">💬 Ask</button>
+    </div>
+
+    
+    {% if current_collection %}
+      <div class="card"><strong>Indexed collection:</strong> {{ current_collection }}</div>
+    {% endif %}
+
+    {% if answer %}
+      <div class="card"><strong>Answer:</strong> {{ answer }}</div>
+    {% endif %}
+
+    {% if sources %}
+      <div class="card">
+        <strong>Sources:</strong>
+        <ul>{% for s in sources %}<li>{{ s }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    
+    const fileInput = document.getElementById('file-input');
+    fileInput?.addEventListener('change', () => {
+      if (fileInput.files.length) document.getElementById('upload-form').submit();
+    });
+  </script>
 </body>
 </html>
