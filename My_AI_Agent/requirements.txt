@@ -17,3 +17,7 @@ pypdf
 pillow
 pdf2image
 pytesseract
+
+# Prod server/static
+gunicorn
+whitenoise

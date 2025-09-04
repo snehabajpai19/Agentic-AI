@@ -43,8 +43,12 @@ from langchain_community.document_loaders import (
     UnstructuredFileLoader,  
 )
 
-DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_langchain_db")
-EMB = OllamaEmbeddings(model=getattr(settings, "OLLAMA_EMBED_MODEL", "mxbai-embed-large"))
+DB_DIR = os.getenv("CHROMA_PERSIST_DIR", getattr(settings, "CHROMA_PERSIST_DIR", os.path.join(os.path.dirname(__file__), "chroma_langchain_db")))
+os.makedirs(DB_DIR, exist_ok=True)
+EMB = OllamaEmbeddings(
+    model=getattr(settings, "OLLAMA_EMBED_MODEL", "mxbai-embed-large"),
+    base_url=getattr(settings, "OLLAMA_HOST", None) or None,
+)
 
 
 def _safe_collection_name(file_path: str, suffix_len: int = 6) -> str:

@@ -28,6 +28,7 @@ def ask_ai(request):
         temperature=getattr(settings, "OLLAMA_TEMPERATURE", 0.2),
         num_predict=num_predict,
         num_ctx=num_ctx,
+        base_url=getattr(settings, "OLLAMA_HOST", None) or None,
     )
 
     # Generic prompt (no schema assumptions)
