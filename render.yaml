@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: my-ai-agent
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn My_AI_Agent.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: my-ai-agent.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://my-ai-agent.onrender.com
+      # Point this to your external Ollama server (or remove if using localhost on a private service)
+      # - key: OLLAMA_HOST
+      #   value: https://your-ollama-host:11434
+      - key: CHROMA_PERSIST_DIR
+        value: /app/My_AI_Agent/chroma_langchain_db
+    disks:
+      - name: chroma
+        mountPath: /app/My_AI_Agent/chroma_langchain_db
