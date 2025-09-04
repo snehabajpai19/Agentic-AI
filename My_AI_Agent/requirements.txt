@@ -1,0 +1,19 @@
+django==5.2.5
+
+# LangChain core + integrations used in this app
+langchain-core
+langchain-text-splitters
+langchain-ollama
+langchain-chroma
+langchain-community
+chromadb
+
+# Document loaders / parsing
+unstructured
+python-docx
+pypdf
+
+# OCR and imaging (enable OCR with OCR_ENABLED=1)
+pillow
+pdf2image
+pytesseract

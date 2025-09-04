@@ -124,3 +124,36 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- App performance/config ---
+# Override via env vars if desired.
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+# Temperature low for faster, more focused answers; num_predict caps output length
+OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.2"))
+OLLAMA_NUM_PREDICT = int(os.getenv("OLLAMA_NUM_PREDICT", "256"))
+OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "2048"))
+
+# Embedding model for retrieval (used at query + indexing time)
+OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+
+# Retrieval and context limits
+RETRIEVAL_K = int(os.getenv("RETRIEVAL_K", "3"))
+MAX_CONTEXT_CHARS = int(os.getenv("MAX_CONTEXT_CHARS", "4000"))
+MAX_CHARS_PER_DOC = int(os.getenv("MAX_CHARS_PER_DOC", "1200"))
+
+# Fast mode overrides (used when client toggles fast=1)
+OLLAMA_FAST_MODEL = os.getenv("OLLAMA_FAST_MODEL", os.getenv("OLLAMA_MODEL", "llama3.2"))
+FAST_NUM_PREDICT = int(os.getenv("FAST_NUM_PREDICT", "160"))
+FAST_NUM_CTX = int(os.getenv("FAST_NUM_CTX", "1024"))
+FAST_RETRIEVAL_K = int(os.getenv("FAST_RETRIEVAL_K", "2"))
+FAST_MAX_CONTEXT_CHARS = int(os.getenv("FAST_MAX_CONTEXT_CHARS", "2500"))
+FAST_MAX_CHARS_PER_DOC = int(os.getenv("FAST_MAX_CHARS_PER_DOC", "800"))
+
+# Chunking for indexing
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "120"))
+FAST_CHUNK_SIZE = int(os.getenv("FAST_CHUNK_SIZE", "1400"))
+FAST_CHUNK_OVERLAP = int(os.getenv("FAST_CHUNK_OVERLAP", "80"))
+
+# OCR behavior (heavy). Disabled by default for speed.
+OCR_ENABLED = os.getenv("OCR_ENABLED", "0") in {"1", "true", "True", "YES", "yes"}

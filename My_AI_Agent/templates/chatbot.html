@@ -4,13 +4,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Ask</title>
+<title>My AI Agent</title>
 <style>
   :root{
     --bg1:#0e1320; --bg2:#0b1630;
     --glass:#0f172a; --stroke:#1f2937;
-    --text:#e5e7eb; --muted:#9ca3af; --accent:#4f46e5;
+    --text:#e5e7eb; --muted:#9ca3af; --accent:#6366f1;
     --chip:#111827; --chip-border:#374151;
+    --success:#10b981; --danger:#ef4444;
   }
   *{box-sizing:border-box}
   body{
@@ -18,16 +19,16 @@
     color:var(--text);
     background: radial-gradient(1200px 600px at 50% -10%, #1b2b5a 0%, transparent 60%),
                 linear-gradient(180deg, var(--bg1), var(--bg2));
-    min-height:100dvh; display:flex; align-items:center; justify-content:center;
+    min-height:100dvh; display:flex; align-items:flex-start; justify-content:center;
   }
   .hero{
-    width:min(1100px, 92vw); text-align:center; padding:32px 0 10vh;
+    width:min(1100px, 92vw); text-align:center; padding:40px 0 10vh;
   }
   h1{
-    font-size: clamp(28px, 6vw, 56px); margin:0 0 6px; font-weight:700; letter-spacing:0.2px;
+    font-size: clamp(28px, 6vw, 48px); margin:0 0 6px; font-weight:800; letter-spacing:0.2px;
   }
-  h2{
-    font-size: clamp(18px, 4.2vw, 40px); margin:0 0 28px; font-weight:600; color:var(--muted);
+  .sub{
+    font-size: clamp(14px, 2.4vw, 16px); margin:0 0 24px; color:var(--muted);
   }
 
   /* Search/ask bar */
@@ -35,7 +36,7 @@
     background: rgba(17,24,39,.75);
     border: 1px solid var(--stroke);
     border-radius: 16px;
-    padding: 12px;
+    padding: 10px 10px 10px 14px;
     backdrop-filter: blur(6px);
     display:flex; align-items:center; gap:10px;
     box-shadow: 0 10px 30px rgba(0,0,0,.25);
@@ -47,27 +48,29 @@
   .btn{
     appearance:none; border:none; cursor:pointer;
     background: var(--accent); color:white;
-    padding:10px 16px; border-radius:12px; font-weight:600;
+    padding:10px 16px; border-radius:12px; font-weight:700;
     transition:.2s transform ease, .2s opacity ease;
+    display:inline-flex; align-items:center; gap:8px;
   }
+  .btn[disabled]{ opacity:.6; cursor:not-allowed; }
   .btn:hover{ transform: translateY(-1px); opacity:.95; }
 
-  
   .chips{
     display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
     margin:14px 0 0;
   }
   .chip{
     display:inline-flex; align-items:center; gap:8px;
-    padding:8px 14px; border-radius:999px; font-weight:600; font-size:14px;
+    padding:10px 14px; border-radius:999px; font-weight:600; font-size:14px;
     background:var(--chip); border:1px solid var(--chip-border); color:var(--text);
     cursor:pointer; transition:.2s transform ease, .2s opacity ease;
   }
   .chip:hover{ transform: translateY(-1px); opacity:.95; }
+  .chip svg{ width:16px; height:16px; }
 
-  
   input[type="file"]{ display:none; }
 
+  .badge{ display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:#c7d2fe; }
 
   .card{
     margin:18px auto 0; width:min(900px, 92vw);
@@ -76,58 +79,139 @@
   }
   .card strong{ color:#c7d2fe; }
   ul{ margin:8px 0 0 18px; }
+  .answer{ white-space:pre-wrap; line-height:1.55; }
+  pre, code{ font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  pre{ background:#0b1220; border:1px solid #192236; padding:12px; border-radius:10px; overflow:auto; }
+
+  .alert{ border-left:3px solid var(--danger); padding:12px 14px; background:rgba(239,68,68,.08); color:#fecaca; border-radius:10px; }
+
+  .toprow{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+  .leftgrow{ flex: 1 1 600px; }
+  .rightfixed{ flex:0 0 auto; }
+  .pill{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); background:rgba(17,24,39,.6); font-size:12px; color:var(--muted);} 
+
+  .copybar{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+  .copybtn{ background:transparent; border:1px solid var(--stroke); color:var(--text); border-radius:8px; padding:6px 10px; cursor:pointer; font-weight:600; }
+  .copybtn:hover{ background:#0b1220; }
+  details summary{ cursor:pointer; color:#c7d2fe; }
 </style>
 </head>
 <body>
   <div class="hero">
-    <h1>Hello!</h1>
-    <h2>How can I help you today?</h2>
+    <h1>My AI Agent</h1>
+    <p class="sub">Ask questions against your uploaded documents. Upload, then ask.</p>
 
-  
-    <form class="bar" method="post">
-      {% csrf_token %}
-      <input type="text" name="question" placeholder="Ask anything…" required />
-      <button class="btn" type="submit" name="action" value="ask">Ask</button>
-    </form>
+    <div class="toprow">
+      <div class="leftgrow">
+        <form class="bar" id="ask-form" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="ask" />
+          <input type="hidden" name="fast" id="ask-fast" value="1" />
+          <input id="q" type="text" name="question" placeholder="Ask anything…" required />
+          <button id="ask-btn" class="btn" type="submit" name="action" value="ask">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            <span>Ask</span>
+          </button>
+        </form>
+        <div class="chips">
+          <button class="chip" type="button" data-example="Summarize the uploaded document in 3 bullet points.">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Examples
+          </button>
+          <button class="chip" type="button" data-example="What are the key findings in the document?">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Key findings
+          </button>
+          
+        </div>
+      </div>
 
-   
-    <div class="chips">
-      
-      <form id="upload-form" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <label class="chip" for="file-input">⬆️ Upload</label>
-        <input id="file-input" type="file" name="doc"
-               accept=".csv,.txt,.md,.markdown,.pdf,.docx,.png,.jpg,.jpeg,.bmp,.tiff,.webp"
-               required />
-        <input type="hidden" name="action" value="upload" />
-      </form>
-
-     
-      <button class="chip" type="button" onclick="document.querySelector('.bar .btn').click()">💬 Ask</button>
+      <div class="rightfixed">
+        <form id="upload-form" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input id="file-input" type="file" name="doc"
+                 accept=".csv,.txt,.md,.markdown,.pdf,.docx,.png,.jpg,.jpeg,.bmp,.tiff,.webp"
+                 required />
+          <input type="hidden" name="action" value="upload" />
+          <input type="hidden" name="fast" id="upload-fast" value="1" />
+          <label class="chip" for="file-input" id="upload-chip">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 19V6m0 0l-4 4m4-4l4 4M5 19h14a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Upload</span>
+          </label>
+        </form>
+        {% if current_collection %}
+          <div class="pill" title="Active vector collection">Indexed: {{ current_collection }}</div>
+        {% endif %}
+      </div>
     </div>
 
-    
-    {% if current_collection %}
-      <div class="card"><strong>Indexed collection:</strong> {{ current_collection }}</div>
+    {% if error %}
+      <div class="card"><div class="alert">{{ error }}</div></div>
     {% endif %}
 
     {% if answer %}
-      <div class="card"><strong>Answer:</strong> {{ answer }}</div>
+      <div class="card">
+        <div class="copybar">
+          <strong>Answer</strong>
+          <button class="copybtn" type="button" id="copy-answer">Copy</button>
+        </div>
+        <div id="answer" class="answer">{{ answer }}</div>
+      </div>
     {% endif %}
 
     {% if sources %}
       <div class="card">
-        <strong>Sources:</strong>
-        <ul>{% for s in sources %}<li>{{ s }}</li>{% endfor %}</ul>
+        <details open>
+          <summary><strong>Sources</strong></summary>
+          <ul>
+            {% for s in sources %}
+              <li>{{ s }}</li>
+            {% endfor %}
+          </ul>
+        </details>
       </div>
     {% endif %}
   </div>
 
   <script>
-    
+    // Submit ask with loading state
+    const askForm = document.getElementById('ask-form');
+    const askBtn = document.getElementById('ask-btn');
+    const q = document.getElementById('q');
+    askForm?.addEventListener('submit', () => {
+      askBtn.disabled = true;
+      askBtn.innerHTML = `<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"12\" cy=\"12\" r=\"9\" stroke=\"currentColor\" stroke-width=\"2\" opacity=\".25\"/><path d=\"M21 12a9 9 0 0 0-9-9\" stroke=\"currentColor\" stroke-width=\"2\"><animateTransform attributeName=\"transform\" type=\"rotate\" from=\"0 12 12\" to=\"360 12 12\" dur=\"1s\" repeatCount=\"indefinite\"/></path></svg><span>Thinking…</span>`;
+    });
+
+    // Example chips: fill input and submit
+    document.querySelectorAll('[data-example]')?.forEach(ch => {
+      ch.addEventListener('click', () => {
+        q.value = ch.getAttribute('data-example');
+        askForm.requestSubmit();
+      });
+    });
+
+    // Auto-submit on file select with loading label
     const fileInput = document.getElementById('file-input');
+    const uploadChip = document.getElementById('upload-chip');
+    const askFast = document.getElementById('ask-fast'); // stays at '1' to keep fast mode
+    const uploadFast = document.getElementById('upload-fast');
     fileInput?.addEventListener('change', () => {
-      if (fileInput.files.length) document.getElementById('upload-form').submit();
+      if (fileInput.files.length) {
+        uploadChip.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 19V6m0 0l-4 4m4-4l4 4M5 19h14a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Indexing…</span>';
+        document.getElementById('upload-form').submit();
+      }
+    });
+
+    // Copy answer
+    const copyBtn = document.getElementById('copy-answer');
+    const answerEl = document.getElementById('answer');
+    copyBtn?.addEventListener('click', async () => {
+      try{
+        await navigator.clipboard.writeText(answerEl?.innerText || '');
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=> copyBtn.textContent = 'Copy', 1200);
+      }catch{ /* ignore */ }
     });
   </script>
 </body>
